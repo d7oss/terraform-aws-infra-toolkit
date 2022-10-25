@@ -16,10 +16,11 @@ locals {
       health_check_status_codes = coalesce(service.health_check_status_codes, [200, 301, 302])
       has_cache = service.cache_paths != null
       cache_paths = coalesce(service.cache_paths, [])
-      has_www = coalesce(service.redirect_apex_to_www, false)
+      is_www = can(regex("www", service.hostname))
       hostname_apex = replace(service.hostname, "/^www\\./", "")
       hostname_www = replace(service.hostname, "/^(www\\.)?/", "www.")
       redirect_apex_to_www = coalesce(service.redirect_apex_to_www, false)
+      redirect_www_to_apex = coalesce(service.redirect_www_to_apex, false)
       auto_scaling = {
         min_instances = coalesce(service.min_instances, 1)
         max_instances = coalesce(service.max_instances, 1)
@@ -282,6 +283,34 @@ resource "aws_lb_listener_rule" "redirect_apex_to_www" {
   }
 }
 
+resource "aws_lb_listener_rule" "redirect_www_to_apex" {
+  /*
+  ALB rule to redirect www to apex domain
+  */
+  for_each = {
+    for name, service in local.http_services:
+    (name) => service
+    if service.redirect_www_to_apex
+  }
+
+  listener_arn = data.aws_lb_listener.https[each.key].arn
+
+  condition {
+    host_header {
+      values = [each.value.hostname_www]
+    }
+  }
+
+  action {
+    type = "redirect"
+
+    redirect {
+      host = each.value.hostname_apex
+      status_code = "HTTP_301"
+    }
+  }
+}
+
 resource "aws_cloudfront_distribution" "cache" {
   /*
   CDN to speed up / cache / reduce costs of network traffic
@@ -346,14 +375,17 @@ resource "aws_cloudfront_distribution" "cache" {
 
 module "dns_alb_alias_records" {
   /*
-  DNS A records pointing to the ALBs
+  DNS A records pointing to the ALBs (apex)
   */
   source = "d7oss/route53/aws//record"
 
   for_each = {
     for name, service in local.http_services:
     (name) => service
-    if !service.has_cache || service.redirect_apex_to_www
+    if anytrue([
+      service.redirect_apex_to_www,  # Apex will redirect at ALB level
+      !service.is_www && !service.has_cache,  # Apex receives direct traffic
+    ])
   }
 
   zone_id = data.aws_route53_zone.main.id
@@ -375,7 +407,10 @@ module "dns_alb_alias_records_www" {
   for_each = {
     for name, service in local.http_services:
     (name) => service
-    if !service.has_cache && service.redirect_apex_to_www
+    if anytrue([
+      service.redirect_www_to_apex,  # www will redirect at ALB level
+      service.is_www && !service.has_cache,  # www receives direct traffic
+    ])
   }
 
   zone_id = data.aws_route53_zone.main.id

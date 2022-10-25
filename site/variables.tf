@@ -37,6 +37,7 @@ variable "services" {
     docker_image_source = optional(string)
     hostname = optional(string)
     redirect_apex_to_www = optional(bool)
+    redirect_www_to_apex = optional(bool)
     load_balancer = optional(string)
     http_port = optional(number)
     env = optional(map(string))

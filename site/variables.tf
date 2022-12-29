@@ -45,6 +45,7 @@ variable "services" {
     health_check_path = optional(string)
     health_check_status_codes = optional(list(number))
     cache_paths = optional(list(string))
+    mount_files = optional(map(string))
     file_system = optional(object({
       id = string
       root_directory = string

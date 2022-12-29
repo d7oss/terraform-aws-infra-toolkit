@@ -182,6 +182,7 @@ module "ecs_application" {
           }
         }, null)
         auto_scaling = service.auto_scaling
+        mount_files = service.mount_files
       }
     },
     {  # TODO: Workers

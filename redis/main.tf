@@ -26,7 +26,7 @@ resource "aws_elasticache_cluster" "main" {
   node_type = var.node_type
   num_cache_nodes = 1
   parameter_group_name = aws_elasticache_parameter_group.main.name
-  engine_version = "2.8.24"
+  engine_version = var.engine_version
   port = 6379
   security_group_ids = [module.security_group.id]
   subnet_group_name = "prod"
@@ -37,5 +37,5 @@ resource "aws_elasticache_parameter_group" "main" {
   Parameter group for the Redis instance
   */
   name = var.name
-  family = "redis2.8"
+  family = var.parameter_group_family
 }

@@ -14,3 +14,13 @@ variable "vpc" {
 variable "ingress_security_groups" {
   type = map(string)
 }
+
+variable "engine_version" {
+  type = string
+  default = "2.8.24"
+}
+
+variable "parameter_group_family" {
+  type = string
+  default = "redis2.8"
+}

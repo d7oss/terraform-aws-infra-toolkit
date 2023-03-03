@@ -133,7 +133,6 @@ module "ecs_application" {
   */
   source = "emyller/ecs-application/aws"
   version = "~> 4.0"
-  depends_on = [module.ecr]
 
   application_name = var.name
   environment_name = "main"  # TODO: Remove this parameter

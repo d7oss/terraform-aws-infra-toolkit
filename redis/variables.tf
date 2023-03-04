@@ -24,3 +24,7 @@ variable "parameter_group_family" {
   type = string
   default = "redis2.8"
 }
+
+variable "subnet_group_name" {
+  type = string
+}

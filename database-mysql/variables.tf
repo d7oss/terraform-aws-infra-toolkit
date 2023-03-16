@@ -24,3 +24,13 @@ variable "engine_mode" {
   type = string
   default = "provisioned"
 }
+
+variable "instance_type" {
+  type = string
+  default = "db.t4g.medium"
+}
+
+variable "instance_count" {
+  type = number
+  default = 1
+}

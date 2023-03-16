@@ -24,6 +24,7 @@ resource "aws_rds_cluster" "main" {
   master_password = random_password.main.result
   db_subnet_group_name = "prod"
   vpc_security_group_ids = [module.security_group.id]
+  apply_immediately = var.apply_immediately
 }
 
 resource "aws_rds_cluster_instance" "main" {
@@ -32,6 +33,7 @@ resource "aws_rds_cluster_instance" "main" {
   instance_class = var.instance_type
   engine = aws_rds_cluster.main.engine
   engine_version = aws_rds_cluster.main.engine_version
+  apply_immediately = var.apply_immediately
 }
 
 module "security_group" {

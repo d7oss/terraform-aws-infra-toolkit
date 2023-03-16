@@ -1,3 +1,8 @@
+variable "apply_immediately" {
+  type = bool
+  default = false
+}
+
 variable "name" {
   type = string
 }

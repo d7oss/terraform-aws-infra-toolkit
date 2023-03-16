@@ -3,11 +3,22 @@ resource "random_password" "main" {
   override_special = "<>;()&#!^_-"
 }
 
+data "aws_rds_engine_version" "main" {
+  engine = var.engine
+  version = var.engine_version
+  default_only = true
+
+  filter {
+    name = "engine-mode"
+    values = [var.engine_mode]
+  }
+}
+
 resource "aws_rds_cluster" "main" {
   cluster_identifier = var.name
-  engine = "aurora-mysql"
+  engine = data.aws_rds_engine_version.main.engine
   engine_mode = "provisioned"
-  engine_version = "8.0.mysql_aurora.3.02.1"
+  engine_version = data.aws_rds_engine_version.main.version
   database_name = "main"
   master_username = "master"
   master_password = random_password.main.result

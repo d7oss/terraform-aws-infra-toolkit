@@ -3,6 +3,9 @@ terraform {
 }
 
 locals {
+  # Environment name
+  env_name = "main"  # TODO: Read as parameter
+
   # Normalize the services parameters
   services = {
     for name, service in var.services:
@@ -10,8 +13,8 @@ locals {
       full_name = "${var.name}-${name}"
       docker_tag = coalesce(service.docker_tag, "master")
       docker_image_source = coalesce(service.docker_image_source, "ecr")
-      env = coalesce(service.env, {})
-      secrets = coalesce(service.secrets, {})
+      env = coalesce(service.env, var.env, {})
+      secrets = coalesce(service.secrets, var.secrets, {})
       health_check_path = coalesce(service.health_check_path, "/")
       health_check_status_codes = coalesce(service.health_check_status_codes, [200, 301, 302])
       has_cache = service.cache_paths != null
@@ -28,6 +31,15 @@ locals {
         memory_threshold = service.memory_threshold
       }
     })
+  }
+
+  # All secrets grouped by service mapped to Secrets Manager resources
+  services_secrets_map = {
+    for service_name, service in local.services:
+    (service_name) => {
+      for secret_name in nonsensitive(keys(service.secrets)):
+      (secret_name) => module.secrets["${service_name}-${secret_name}"].name
+    }
   }
 
   # HTTP services
@@ -132,7 +144,7 @@ module "ecs_application" {
   ECS service stack for the site
   */
   source = "emyller/ecs-application/aws"
-  version = "~> 4.0"
+  version = ">= 4.3, < 5.0"
 
   application_name = var.name
   environment_name = "main"  # TODO: Remove this parameter
@@ -141,11 +153,6 @@ module "ecs_application" {
   security_group_ids = [
     module.ecs_cluster.security_group_id,
   ]
-  environment_variables = var.env
-  secrets = {
-    for secret_name in keys(var.secrets):
-    (secret_name) => module.secrets[secret_name].name
-  }
 
   services = merge(
     {  # HTTP services
@@ -156,6 +163,8 @@ module "ecs_application" {
         launch_type = "FARGATE"
         is_spot = true
         command = service.command
+        environment = service.env
+        secrets = local.services_secrets_map[name]
         docker = {
           image_name = service.docker_image
           image_tag = service.docker_tag
@@ -216,10 +225,20 @@ module "secrets" {
   */
   source = "emyller/secret/aws"
   version = "~> 1.0"
-  for_each = var.secrets
+  for_each = {
+    for item in flatten([
+      for service_name, service in local.services: [
+        for secret_name in nonsensitive(keys(service.secrets)): {
+          service_name = service_name
+          secret_name = secret_name
+          # Secret value can't be contained in for_each argument
+        }
+      ]
+    ]): ("${item.service_name}-${item.secret_name}") => item
+  }
 
-  name = "/main/${var.name}/${each.key}"
-  contents = each.value
+  name = "/${local.env_name}/${var.name}/${each.value.service_name}/${each.value.secret_name}"
+  contents = local.services[each.value.service_name].secrets[each.value.secret_name]
 }
 
 module "iam_user" {

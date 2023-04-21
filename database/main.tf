@@ -3,11 +3,24 @@ resource "random_password" "main" {
   override_special = "<>;()&#!^_-"
 }
 
+data "aws_rds_engine_version" "main" {
+  engine = "aurora-postgresql"
+  version = var.engine_version
+
+  # Force upgrades if version deprecated
+  include_all = false
+
+  filter {
+    name = "engine-mode"
+    values = ["provisioned"]
+  }
+}
+
 resource "aws_rds_cluster" "main" {
   cluster_identifier = var.name
-  engine = "aurora-postgresql"
+  engine = data.aws_rds_engine_version.main.engine
   engine_mode = "provisioned"
-  engine_version = "14.3"
+  engine_version = data.aws_rds_engine_version.main.version
   database_name = "main"
   master_username = "master"
   master_password = random_password.main.result

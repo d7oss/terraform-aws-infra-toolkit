@@ -7,7 +7,7 @@ data "aws_rds_engine_version" "main" {
   engine = var.engine
   version = var.engine_version
 
-  # Force upgrades if version deprecated
+  # Prevent deprecated versions
   include_all = false
 
   filter {
@@ -27,15 +27,19 @@ resource "aws_rds_cluster" "main" {
   db_subnet_group_name = "prod"
   vpc_security_group_ids = [module.security_group.id]
 
-  serverlessv2_scaling_configuration {
-    max_capacity = var.acu_max_capacity
-    min_capacity = 0.5
+  dynamic "serverlessv2_scaling_configuration" {
+    for_each = var.acu_max_capacity == null ? [] : [true]
+    content {
+      max_capacity = var.acu_max_capacity
+      min_capacity = 0.5
+    }
   }
 }
 
 resource "aws_rds_cluster_instance" "main" {
+  count = var.instance_count
   cluster_identifier = aws_rds_cluster.main.id
-  instance_class = "db.t4g.medium"
+  instance_class = var.instance_class
   engine = aws_rds_cluster.main.engine
   engine_version = aws_rds_cluster.main.engine_version
 }

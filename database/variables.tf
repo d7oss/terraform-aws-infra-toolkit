@@ -22,4 +22,15 @@ variable "engine_version" {
 
 variable "acu_max_capacity" {
   type = number
+  default = null
+}
+
+variable "instance_class" {
+  type = string
+  default = "db.t4g.medium"
+}
+
+variable "instance_count" {
+  type = number
+  default = 1
 }

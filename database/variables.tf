@@ -10,6 +10,11 @@ variable "ingress_security_groups" {
   type = map(string)
 }
 
+variable "engine" {
+  type = string
+  default = "aurora-postgresql"
+}
+
 variable "engine_version" {
   type = string
   default = null

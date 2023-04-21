@@ -4,7 +4,7 @@ resource "random_password" "main" {
 }
 
 data "aws_rds_engine_version" "main" {
-  engine = "aurora-postgresql"
+  engine = var.engine
   version = var.engine_version
 
   # Force upgrades if version deprecated

@@ -1,5 +1,14 @@
+locals {
+  # Map RDS engine to the connection URL scheme, e.g. postgres://
+  engine_scheme = {
+    "aurora-postgresql" = "postgres"
+    "aurora-mysql" = "mysql"
+  }[var.engine]
+}
+
 output "url" {
-  value = format("postgres://%s:%s@%s:%s/%s", [
+  value = format("%s://%s:%s@%s:%s/%s", [
+    local.engine_scheme,
     aws_rds_cluster.main.master_username,
     urlencode(random_password.main.result),
     aws_rds_cluster.main.endpoint,

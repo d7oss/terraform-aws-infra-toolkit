@@ -24,7 +24,7 @@ resource "aws_rds_cluster" "main" {
   database_name = "main"
   master_username = "master"
   master_password = random_password.main.result
-  db_subnet_group_name = "prod"
+  db_subnet_group_name = var.subnet_group_name  # TODO: Support managing subnet group
   vpc_security_group_ids = [module.security_group.id]
 
   dynamic "serverlessv2_scaling_configuration" {

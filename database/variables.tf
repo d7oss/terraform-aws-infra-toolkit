@@ -6,6 +6,10 @@ variable "vpc" {
   type = string
 }
 
+variable "subnet_group_name" {
+  type = string
+}
+
 variable "ingress_security_groups" {
   type = map(string)
 }

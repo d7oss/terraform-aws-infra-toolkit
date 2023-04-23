@@ -407,7 +407,7 @@ module "dns_alb_alias_records" {
     ])
   }
 
-  zone_id = data.aws_route53_zone.main.id
+  zone_id = var.dns_zone_id
   type = "A"
   name = each.value.hostname_apex
   alias = {
@@ -432,7 +432,7 @@ module "dns_alb_alias_records_www" {
     ])
   }
 
-  zone_id = data.aws_route53_zone.main.id
+  zone_id = var.dns_zone_id
   type = "A"
   name = each.value.hostname_www
   alias = {
@@ -450,7 +450,7 @@ module "dns_cdn_alias_records" {
 
   for_each = local.http_services_with_cache
 
-  zone_id = data.aws_route53_zone.main.id
+  zone_id = var.dns_zone_id
   type = "A"
   name = each.value.hostname
   alias = {
@@ -468,7 +468,7 @@ module "tls_certificate" {
   count = var.manage_tls ? 1 : 0
 
   domain_name = var.certificate_domain
-  zone_id = data.aws_route53_zone.main.id
+  zone_id = var.dns_zone_id
 }
 
 module "tls_certificate_cdn" {
@@ -480,5 +480,5 @@ module "tls_certificate_cdn" {
   providers = { aws = aws.use1 }
 
   domain_name = var.certificate_domain
-  zone_id = data.aws_route53_zone.main.id
+  zone_id = var.dns_zone_id
 }

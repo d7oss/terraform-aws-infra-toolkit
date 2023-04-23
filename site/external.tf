@@ -16,10 +16,6 @@ data "aws_security_group" "http_load_balancers" {
   name = "lb-${each.value.load_balancer}"
 }
 
-data "aws_route53_zone" "main" {
-  name = var.dns_zone_domain
-}
-
 data "aws_acm_certificate" "main" {
   count = var.manage_tls ? 0 : 1
   domain = var.certificate_domain

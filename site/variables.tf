@@ -13,9 +13,9 @@ variable "certificate_domain" {
   description = "The primary domain name of the ACM certificate."
 }
 
-variable "dns_zone_domain" {
+variable "dns_zone_id" {
   type = string
-  description = "The domain of the DNS zone used in this application."
+  description = "The Zone ID in Route53 for the application domain."
 }
 
 variable "manage_tls" {

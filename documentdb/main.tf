@@ -6,12 +6,17 @@ resource "random_password" "master" {
   special = false
 }
 
+data "aws_docdb_engine_version" "main" {
+  version = var.engine_version
+}
+
 resource "aws_docdb_cluster" "main" {
   /*
   The MongoDB-compatible cluster
   */
   engine = "docdb"
   cluster_identifier = var.name
+  engine_version = data.aws_docdb_engine_version.main.version
 
   # Server authentication
   master_username = "master"

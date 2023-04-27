@@ -2,6 +2,10 @@ variable "name" {
   type = string
 }
 
+variable "engine_version" {
+  type = string
+}
+
 variable "instance_count" {
   type = number
   default = 1

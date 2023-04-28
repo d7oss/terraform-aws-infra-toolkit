@@ -36,3 +36,8 @@ variable "extra_security_group_ids" {
   type = list(string)
   default = []
 }
+
+variable "parameters" {
+  type = map(any)
+  default = {}
+}

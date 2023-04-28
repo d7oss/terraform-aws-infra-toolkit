@@ -17,6 +17,7 @@ resource "aws_docdb_cluster" "main" {
   engine = "docdb"
   cluster_identifier = var.name
   engine_version = data.aws_docdb_engine_version.main.version
+  db_cluster_parameter_group_name = aws_docdb_cluster_parameter_group.main.name
 
   # Server authentication
   master_username = "master"
@@ -41,6 +42,24 @@ resource "aws_docdb_cluster_instance" "main" {
   cluster_identifier = aws_docdb_cluster.main.cluster_identifier
   instance_class = var.instance_class
   identifier = "${var.name}-${format("%02d", count.index + 1)}"
+}
+
+resource "aws_docdb_cluster_parameter_group" "main" {
+  /*
+  Parameters for the DocumentDB server
+
+  https://docs.aws.amazon.com/documentdb/latest/developerguide/cluster_parameter_groups-list_of_parameters.html
+  */
+  family = data.aws_docdb_engine_version.main.parameter_group_family
+  name = var.name
+
+  dynamic "parameter" {
+    for_each = var.parameters
+    content {
+      name = parameter.key
+      value = parameter.value
+    }
+  }
 }
 
 resource "aws_docdb_subnet_group" "main" {

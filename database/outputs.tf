@@ -3,6 +3,7 @@ locals {
   engine_scheme = {
     "aurora-postgresql" = "postgres"
     "aurora-mysql" = "mysql"
+    "mysql" = "mysql"
   }[var.engine]
 }
 

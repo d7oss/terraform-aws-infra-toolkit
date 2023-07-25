@@ -28,3 +28,8 @@ variable "parameter_group_family" {
 variable "subnet_group_name" {
   type = string
 }
+
+variable "subnet_ids" {
+  type = list(string)
+  default = null
+}

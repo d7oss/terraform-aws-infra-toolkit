@@ -1,6 +1,6 @@
 module "security_group" {
   /*
-  The security group of the Redis
+  The security group of the Redis cluster
   */
   source = "emyller/security-group/aws"
   version = "~> 1.0"
@@ -19,7 +19,7 @@ module "security_group" {
 
 resource "aws_elasticache_cluster" "main" {
   /*
-  The Redis instance
+  The Redis cluster
   */
   cluster_id = var.name
   engine = "redis"
@@ -29,13 +29,30 @@ resource "aws_elasticache_cluster" "main" {
   engine_version = var.engine_version
   port = 6379
   security_group_ids = [module.security_group.id]
-  subnet_group_name = var.subnet_group_name
+  subnet_group_name = try(
+    one(aws_elasticache_subnet_group.optional[*].name),
+    var.subnet_group_name,
+  )
 }
 
 resource "aws_elasticache_parameter_group" "main" {
   /*
-  Parameter group for the Redis instance
+  Parameter group for the Redis cluster
   */
   name = var.name
   family = var.parameter_group_family
+
+  # TODO: Allow custom parameters
+}
+
+resource "aws_elasticache_subnet_group" "optional" {
+  /*
+  Subnet group for the Redis cluster
+
+  Only manage a subnet group if subnet IDs were given.
+  */
+  count = var.subnet_ids == null ? 0 : 1
+
+  name = var.name
+  subnet_ids = var.subnet_ids
 }

@@ -1,35 +1,49 @@
 locals {
+  # Engine name
+  engine = (
+    local.is_snapshot_based
+    ? one(data.aws_db_cluster_snapshot.latest.*.engine)
+    : var.engine
+  )
+
   # Map RDS engine to the connection URL scheme, e.g. postgres://
   engine_scheme = {
     "aurora-postgresql" = "postgres"
     "aurora-mysql" = "mysql"
     "mysql" = "mysql"
-  }[var.engine]
+  }[local.engine]
+
+  # The snapshot ID if one was used
+  snapshot_id = local.is_snapshot_based ? one(data.aws_db_cluster_snapshot.latest.*.id) : null
 }
 
 output "url" {
   value = format("%s://%s:%s@%s:%s/%s", [
     local.engine_scheme,
-    aws_rds_cluster.main.master_username,
+    local.db_cluster.master_username,
     urlencode(random_password.main.result),
-    aws_rds_cluster.main.endpoint,
-    aws_rds_cluster.main.port,
-    aws_rds_cluster.main.database_name,
+    local.db_cluster.endpoint,
+    local.db_cluster.port,
+    local.db_cluster.database_name,
   ]...)
 }
 
 output "host" {
-  value = aws_rds_cluster.main.endpoint
+  value = local.db_cluster.endpoint
 }
 
 output "username" {
-  value = aws_rds_cluster.main.master_username
+  value = local.db_cluster.master_username
 }
 
 output "password" {
-  value = aws_rds_cluster.main.master_password
+  value = local.db_cluster.master_password
 }
 
 output "name" {
- value = aws_rds_cluster.main.database_name
+ value = local.db_cluster.database_name
+}
+
+output "restored_from_snapshot" {
+  value = local.snapshot_id
 }

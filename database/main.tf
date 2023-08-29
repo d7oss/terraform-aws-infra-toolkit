@@ -115,6 +115,7 @@ resource "aws_rds_cluster" "restored" {
   */
   count = local.is_snapshot_based ? 1 : 0
   cluster_identifier_prefix = var.name  # New and old cluster will co-exist while deleting the old one
+  snapshot_identifier = local.snapshot_id
 
   # Engine
   engine = one(data.aws_db_cluster_snapshot.latest.*.engine)

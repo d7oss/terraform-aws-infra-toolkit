@@ -1,22 +1,23 @@
 locals {
   # Whether to use a snapshot to create the database
   is_snapshot_based = var.restore_from_cluster_snapshot_identifier != null
-  db_cluster = one(
-    local.is_snapshot_based
-    ? aws_rds_cluster.restored
-    : aws_rds_cluster.main
-  )
+  snapshot = local.is_snapshot_based ? one(data.aws_db_cluster_snapshot.latest.*) : null
 
-  # The snapshot ID if one was used
-  snapshot_id = local.is_snapshot_based ? one(data.aws_db_cluster_snapshot.latest.*.id) : null
+  # Engine name
+  engine = local.is_snapshot_based ? local.snapshot.engine : var.engine
+
+  # Map RDS engine to the connection URL scheme, e.g. postgres://
+  engine_scheme = {
+    "aurora-postgresql" = "postgres"
+    "aurora-mysql" = "mysql"
+  }[local.engine]
+
+  # The cluster, either restored from a snapshot or created from scratch
+  db_cluster = one(local.is_snapshot_based ? aws_rds_cluster.restored : aws_rds_cluster.main)
 
   # Whether to manage the subnet group
   is_managing_subnet_group = var.subnet_ids != null
-  subnet_group = one(
-    local.is_managing_subnet_group
-    ? aws_db_subnet_group.managed
-    : data.aws_db_subnet_group.reused
-  )
+  subnet_group = one(local.is_managing_subnet_group ? aws_db_subnet_group.managed : data.aws_db_subnet_group.reused)
 }
 
 data "aws_db_cluster_snapshot" "latest" {
@@ -121,13 +122,13 @@ resource "aws_rds_cluster" "restored" {
   snapshot_identifier = var.restore_from_cluster_snapshot_identifier
 
   # Engine
-  engine = one(data.aws_db_cluster_snapshot.latest.*.engine)
-  engine_version = one(data.aws_db_cluster_snapshot.latest.*.engine_version)
+  engine = local.snapshot.engine
+  engine_version = local.snapshot.engine_version
   engine_mode = "provisioned"
 
   # Database
-  database_name = "main"
-  master_username = "master"
+  # database_name = "from-snapshot"
+  # master_username = "from-snapshot"
   master_password = random_password.main.result
 
   # Networking
@@ -166,9 +167,18 @@ resource "aws_rds_cluster_instance" "main" {
   */
   count = var.instance_count
   cluster_identifier = local.db_cluster.id
+  identifier = "${var.name}-${random_pet.instance_names[count.index].id}"
   instance_class = var.instance_class
   engine = local.db_cluster.engine
   engine_version = local.db_cluster.engine_version
+}
+
+resource "random_pet" "instance_names" {
+  /*
+  Random names for the database instances
+  */
+  count = var.instance_count
+  length = 1
 }
 
 module "security_group" {

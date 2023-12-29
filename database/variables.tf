@@ -7,6 +7,11 @@ variable "restore_from_cluster_snapshot_identifier" {
   default = null
 }
 
+variable "hostname" {
+  type = string
+  default = null
+}
+
 variable "vpc" {
   type = string
 }

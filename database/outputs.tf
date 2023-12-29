@@ -12,9 +12,6 @@ locals {
     "aurora-mysql" = "mysql"
     "mysql" = "mysql"
   }[local.engine]
-
-  # The snapshot ID if one was used
-  snapshot_id = local.is_snapshot_based ? one(data.aws_db_cluster_snapshot.latest.*.id) : null
 }
 
 output "url" {

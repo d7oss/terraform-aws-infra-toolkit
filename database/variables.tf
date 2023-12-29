@@ -2,7 +2,7 @@ variable "name" {
   type = string
 }
 
-variable "restore_from_cluster" {
+variable "restore_from_cluster_snapshot_identifier" {
   type = string
   default = null
 }

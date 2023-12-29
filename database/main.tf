@@ -1,11 +1,14 @@
 locals {
   # Whether to use a snapshot to create the database
-  is_snapshot_based = var.restore_from_cluster != null
+  is_snapshot_based = var.restore_from_cluster_snapshot_identifier != null
   db_cluster = one(
     local.is_snapshot_based
     ? aws_rds_cluster.restored
     : aws_rds_cluster.main
   )
+
+  # The snapshot ID if one was used
+  snapshot_id = local.is_snapshot_based ? one(data.aws_db_cluster_snapshot.latest.*.id) : null
 
   # Whether to manage the subnet group
   is_managing_subnet_group = var.subnet_ids != null
@@ -21,7 +24,7 @@ data "aws_db_cluster_snapshot" "latest" {
   The latest snapshot of the source database
   */
   count = local.is_snapshot_based ? 1 : 0
-  db_cluster_identifier = var.restore_from_cluster
+  db_cluster_snapshot_identifier = var.restore_from_cluster_snapshot_identifier
   most_recent = true
 }
 
@@ -115,7 +118,7 @@ resource "aws_rds_cluster" "restored" {
   */
   count = local.is_snapshot_based ? 1 : 0
   cluster_identifier_prefix = var.name  # New and old cluster will co-exist while deleting the old one
-  snapshot_identifier = local.snapshot_id
+  snapshot_identifier = var.restore_from_cluster_snapshot_identifier
 
   # Engine
   engine = one(data.aws_db_cluster_snapshot.latest.*.engine)

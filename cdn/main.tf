@@ -56,6 +56,22 @@ module "cdn" {
       use_forwarded_values = false
       compress = behavior.compress
       query_string = behavior.query_string
+      function_association = behavior.viewer_request_handler_js_code != null ? {
+        "viewer-request" = {
+          function_arn = aws_cloudfront_function.viewer_request_handler[path_pattern].arn
+        }
+      } : null
     }
   ]
+}
+
+resource "aws_cloudfront_function" "viewer_request_handler" {
+  for_each = {
+    for path, behavior in var.behaviors_by_path: path => behavior
+    if behavior.viewer_request_handler_js_code != null
+  }
+
+  name = "${replace(var.domain, ".", "-")}-${index(keys(var.behaviors_by_path), each.key)}-viewer-request"
+  runtime = "cloudfront-js-2.0"
+  code = each.value.viewer_request_handler_js_code
 }

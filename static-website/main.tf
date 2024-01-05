@@ -29,6 +29,12 @@ module "cdn" {
       compress = true
       query_string = true
       cache = true
+      viewer_request_handler_js_code = (var.resolve_path_to_root_object
+        ? templatefile("${path.module}/viewer-request.template.js", {
+          root_object = var.default_root_object
+        })
+        : null
+      )
     }
   }
 }

@@ -17,6 +17,7 @@ variable "behaviors_by_path" {
     cache = optional(bool, true)
     compress = optional(bool, false)
     query_string = optional(bool, false)
+    viewer_request_handler_js_code = optional(string, null)
   }))
   default = {}
 }

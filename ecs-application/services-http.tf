@@ -142,6 +142,7 @@ module "http_services" {
   task_exec_iam_role_name = "${each.key}"
   enable_execute_command = true  # Enable ECS exec
   task_exec_secret_arns = distinct(values(merge(values(each.value.containers)[*].secrets...)))
+  task_exec_iam_statements = var.extra_task_exec_iam_statements
 }
 
 resource "aws_cloudwatch_log_group" "http_services" {

@@ -109,9 +109,13 @@ module "worker_services" {
     each.value.extra_security_group_ids,
   )
 
+  # Permissions for task containers
+  enable_execute_command = true  # Enable ECS exec
+  tasks_iam_role_name = "${var.namespace}-${each.key}"
+  tasks_iam_role_statements = each.value.extra_task_iam_statements
+
   # Permissions for task execution
   task_exec_iam_role_name = "${var.namespace}-${each.key}"
-  enable_execute_command = true  # Enable ECS exec
   task_exec_secret_arns = distinct(values(merge(values(each.value.containers)[*].secrets...)))
   task_exec_iam_statements = each.value.extra_task_exec_iam_statements
 }

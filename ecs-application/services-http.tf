@@ -68,6 +68,7 @@ module "http_services" {
         {
           containerPort = settings.http.port
           hostPort = settings.http.port
+          protocol = "tcp"
         },
       ]
 

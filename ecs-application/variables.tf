@@ -80,23 +80,23 @@ variable "http_services" {
 
     extra_task_exec_iam_statements = optional(map(object({
       sid = optional(string)
-      actions = optional(list(string))
-      not_actions = optional(list(string))
-      resources = optional(list(string))
-      not_resources = optional(list(string))
+      actions = optional(list(string), [])
+      not_actions = optional(list(string), [])
+      resources = optional(list(string), [])
+      not_resources = optional(list(string), [])
       principals = optional(list(object({
         type = string
         identifiers = list(string)
-      })))
+      })), [])
       not_principals = optional(list(object({
         type = string
         identifiers = list(string)
-      })))
+      })), [])
       conditions = optional(list(object({
         test = string
         variable = string
         values = list(string)
-      })))
+      })), [])
     })), {})
   }))
   default = {}

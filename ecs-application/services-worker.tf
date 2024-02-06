@@ -52,6 +52,21 @@ module "worker_services" {
         }
       ]
 
+      health_check = try({
+        command = settings.health_check.command
+        interval = settings.health_check.interval
+        retries = settings.health_check.retries
+        startPeriod = settings.health_check.start_period
+        timeout = settings.health_check.timeout
+      }, {})
+
+      dependencies = settings.depends_on == null ? [] : [
+        for name, condition in settings.depends_on: {
+          containerName = name
+          condition = condition
+        }
+      ]
+
       # FIXME: As of 2023-12-28, the log group is not namespaced, which might
       # cause conflicts with other environments of the same application stack
       # in the same AWS account, e.g. /aws/ecs/<service>/<container> — we'll

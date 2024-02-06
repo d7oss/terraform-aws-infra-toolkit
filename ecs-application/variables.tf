@@ -58,6 +58,14 @@ variable "http_services" {
       }))
       log_group_name = optional(string)
       log_group_retention_in_days = optional(number, 7)
+      health_check = optional(object({
+        command = list(string)
+        interval = optional(number, 30)
+        timeout = optional(number, 5)
+        retries = optional(number, 3)
+        start_period = optional(number, 60)
+      }))
+      depends_on = optional(map(string))
     }))
 
     autoscaling = optional(object({
@@ -137,6 +145,14 @@ variable "worker_services" {
       secrets = optional(map(string), {})
       log_group_name = optional(string)
       log_group_retention_in_days = optional(number, 7)
+      health_check = optional(object({
+        command = list(string)
+        interval = optional(number, 30)
+        timeout = optional(number, 5)
+        retries = optional(number, 3)
+        start_period = optional(number, 60)
+      }))
+      depends_on = optional(map(string))
     }))
 
     autoscaling = optional(object({

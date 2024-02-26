@@ -13,6 +13,10 @@ output "hostname" {
   value = local.db_cluster.endpoint
 }
 
+output "port" {
+  value = local.db_cluster.port
+}
+
 output "username" {
   value = local.db_cluster.master_username
 }

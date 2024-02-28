@@ -48,7 +48,7 @@ module "http_services" {
   cpu = each.value.cpu
   memory = each.value.memory
 
-  container_definitions = {
+  container_definitions = merge({
     for name, settings in each.value.containers: (name) => {
       image = settings.image
       command = settings.command
@@ -115,7 +115,38 @@ module "http_services" {
 
       essential = true
       readonly_root_filesystem = false
+
+      # Shared volume for file mounts
+      mount_points = settings.file_mounts == null ? [] : [
+        { containerPath = "/mnt", sourceVolume = "${name}-file-mounter" },
+      ]
+
+      # Wait for the files to be mounted before starting the task
+      dependencies = settings.file_mounts == null ? [] : [
+        { containerName = "${name}-file-mounter", condition = "COMPLETE" },
+      ]
     }
+  }, {
+    # Sidecar container to mount files into the task
+    for name, container in each.value.containers: ("${name}-file-mounter") => {
+      essential = false
+      image = "public.ecr.aws/docker/library/bash:5"
+      command = ["-c", join(";", [
+        for path, contents in container.file_mounts:
+        "echo '${contents}' | base64 -d - | tee ${path}"
+      ])]
+      mount_points = [  # Shared with the main container
+        { containerPath = "/mnt", sourceVolume = "${name}-file-mounter" },
+      ]
+    }
+    if container.file_mounts != null
+  })
+
+  volume = {
+    for name, settings in each.value.containers: ("${name}-file-mounter") => {
+      name = "${name}-file-mounter"
+    }
+    if settings.file_mounts != null
   }
 
   load_balancer = merge({

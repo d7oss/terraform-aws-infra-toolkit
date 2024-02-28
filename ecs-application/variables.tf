@@ -72,6 +72,7 @@ variable "http_services" {
         start_period = optional(number, 60)
       }))
       depends_on = optional(map(string))
+      file_mounts = optional(map(string))
     }))
 
     autoscaling = optional(object({
@@ -135,6 +136,19 @@ variable "http_services" {
     })), {})
   }))
   default = {}
+
+  validation {
+    condition = alltrue(flatten([
+      for service_name, service in var.http_services: [
+        for container_name, container in service.containers: [
+          for file_path in keys(coalesce(container.file_mounts, {})): [
+            startswith(file_path, "/mnt/"),
+          ]
+        ]
+      ]
+    ]))
+    error_message = "Files can only be mounted under /mnt/."
+  }
 }
 
 variable "worker_services" {

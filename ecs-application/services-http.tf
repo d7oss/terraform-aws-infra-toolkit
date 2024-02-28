@@ -18,6 +18,12 @@ locals {
     for name, settings in local.all_http_containers:
     (name) => settings if settings.http != null
   }
+
+  # Collect all TCP settings from all containers
+  http_containers_with_tcp = {
+    for name, settings in local.all_http_containers:
+    (name) => settings if settings.tcp != null
+  }
 }
 
 data "aws_lb_listener" "https" {
@@ -64,13 +70,18 @@ module "http_services" {
         }
       ]
 
-      port_mappings = settings.http == null ? [] : [
-        {
+      port_mappings = [for port_map in [
+        settings.http == null ? null : {
           containerPort = settings.http.port
           hostPort = settings.http.port
           protocol = "tcp"
         },
-      ]
+        settings.tcp == null ? null : {
+          containerPort = settings.tcp.container_port
+          hostPort = settings.tcp.container_port  # Looks wrong but it's not
+          protocol = "tcp"
+        },
+      ]: port_map if port_map != null]
 
       health_check = try({
         command = settings.health_check.command
@@ -107,14 +118,21 @@ module "http_services" {
     }
   }
 
-  load_balancer = {
-    for name, settings in each.value.containers: (name) => {
+  load_balancer = merge({
+    for name, settings in each.value.containers: ("${name}-http") => {
       target_group_arn = aws_lb_target_group.http_services["${each.key}-${name}"].arn
       container_name = name
       container_port = settings.http.port
     }
     if settings.http != null
-  }
+  }, {
+    for name, settings in each.value.containers: ("${name}-tcp") => {
+      target_group_arn = aws_lb_target_group.http_tcp_services["${each.key}-${name}"].arn
+      container_name = name
+      container_port = settings.tcp.container_port
+    }
+    if settings.tcp != null
+  })
 
   # Auto scaling
   autoscaling_min_capacity = each.value.autoscaling.min_capacity
@@ -196,7 +214,7 @@ resource "aws_lb_target_group" "http_services" {
   }
 
   tags = {
-    Name = "${var.namespace}-${each.key}"
+    Name = "${var.namespace}-${each.key}-http"
   }
 }
 
@@ -237,5 +255,44 @@ resource "aws_lb_listener_rule" "http_services" {
         values = each.value.http.listener_rule.headers[each.key]
       }
     }
+  }
+}
+
+resource "aws_lb_target_group" "http_tcp_services" {
+  for_each = local.http_containers_with_tcp
+
+  # AWS imposes a 32 character limit that's too easy to hit, so we use a prefix
+  name_prefix = substr(each.value.container_name, 0, 6)
+
+  port = each.value.tcp.container_port
+  protocol = "TCP"
+  target_type = "ip"
+  vpc_id = var.vpc_id
+  deregistration_delay = 30
+  preserve_client_ip = each.value.tcp.preserve_client_ip
+
+  health_check {
+    interval = 30
+    unhealthy_threshold = 2
+    healthy_threshold = 2
+    protocol = "TCP"
+    port = "traffic-port"
+  }
+
+  tags = {
+    Name = "${var.namespace}-${each.key}-tcp"
+  }
+}
+
+resource "aws_lb_listener" "http_tcp_services" {
+  for_each = local.http_containers_with_tcp
+
+  load_balancer_arn = each.value.tcp.load_balancer_arn
+  port = each.value.tcp.port
+  protocol = "TCP"
+
+  default_action {
+    type = "forward"
+    target_group_arn = aws_lb_target_group.http_tcp_services[each.key].arn
   }
 }

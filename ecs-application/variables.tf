@@ -56,6 +56,12 @@ variable "http_services" {
           timeout = optional(number, 5)
         })
       }))
+      tcp = optional(object({
+        port = number
+        container_port = number
+        load_balancer_arn = string
+        preserve_client_ip = optional(bool, true)
+      }))
       log_group_name = optional(string)
       log_group_retention_in_days = optional(number, 7)
       health_check = optional(object({

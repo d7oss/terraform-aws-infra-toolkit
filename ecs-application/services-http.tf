@@ -247,6 +247,10 @@ resource "aws_lb_target_group" "http_services" {
   tags = {
     Name = "${var.namespace}-${each.key}-http"
   }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_lb_listener_rule" "http_services" {
@@ -312,6 +316,10 @@ resource "aws_lb_target_group" "http_tcp_services" {
 
   tags = {
     Name = "${var.namespace}-${each.key}-tcp"
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }
 

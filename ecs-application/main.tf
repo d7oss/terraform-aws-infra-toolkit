@@ -6,7 +6,7 @@ module "security_group" {
   */
   source = "../security-group"
   name = "ecs-${var.namespace}"
-  description = "${var.namespace} application containers"
+  description = coalesce(var.security_group_description, "${var.namespace} application containers")
   vpc_id = var.vpc_id
   ingress_with_source_security_group_id = var.ingress_security_groups
 }

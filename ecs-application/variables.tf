@@ -26,6 +26,11 @@ variable "extra_security_group_ids" {
   default = []
 }
 
+variable "security_group_description" {
+  type = string
+  default = null
+}
+
 variable "http_services" {
   type = map(object({
     cpu = optional(number, 256)

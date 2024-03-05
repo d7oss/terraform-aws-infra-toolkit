@@ -168,6 +168,7 @@ module "http_services" {
   # Auto scaling
   autoscaling_min_capacity = each.value.autoscaling.min_capacity
   autoscaling_max_capacity = each.value.autoscaling.max_capacity
+  desired_count = max(each.value.autoscaling.min_capacity, 1)  # At least one task
   autoscaling_policies = {
     cpu = {
       policy_type = "TargetTrackingScaling"

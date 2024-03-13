@@ -48,6 +48,8 @@ module "http_services" {
   cpu = each.value.cpu
   memory = each.value.memory
 
+  health_check_grace_period_seconds = each.value.health_check_grace_period_seconds
+
   container_definitions = merge({
     for name, settings in each.value.containers: (name) => {
       image = settings.image

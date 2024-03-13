@@ -36,6 +36,8 @@ variable "http_services" {
     cpu = optional(number, 256)
     memory = optional(number, 512)
 
+    health_check_grace_period_seconds = optional(number, 300)
+
     containers = map(object({
       image = string
       command = optional(list(string), [])

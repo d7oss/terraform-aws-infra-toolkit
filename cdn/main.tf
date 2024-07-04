@@ -9,7 +9,7 @@ module "cdn" {
   # S3
   create_origin_access_control = true
   origin_access_control = {
-    "s3" = {
+    "${var.domain}-s3" = {
       description = var.domain
       origin_type = "s3"
       signing_behavior = "always"
@@ -19,7 +19,7 @@ module "cdn" {
 
   origin = {
     "s3" = {
-      origin_access_control = "s3"
+      origin_access_control = "${var.domain}-s3"
       domain_name = var.s3_bucket_regional_domain_name
     }
 

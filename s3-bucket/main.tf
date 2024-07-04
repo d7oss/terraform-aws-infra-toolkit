@@ -4,7 +4,7 @@ module "s3_bucket" {
 
   bucket = var.name
 
-  attach_policy = var.policy != null
+  attach_policy = true
   policy = var.policy
 
   versioning = {

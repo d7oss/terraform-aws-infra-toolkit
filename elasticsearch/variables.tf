@@ -39,7 +39,7 @@ variable "hostname" {
   default = null
 }
 
-variable "acm_certificate_arn" {
+variable "hostname_zone_id" {
   type = string
   default = null
 }

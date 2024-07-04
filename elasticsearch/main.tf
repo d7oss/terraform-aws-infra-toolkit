@@ -43,7 +43,7 @@ resource "aws_elasticsearch_domain" "main" {
   /*
   The ElasticSearch domain
   */
-  depends_on = [aws_iam_service_linked_role.es]
+  # depends_on = [aws_iam_service_linked_role.es]
 
   domain_name = var.name
   elasticsearch_version = var.elasticsearch_version
@@ -92,7 +92,7 @@ resource "aws_elasticsearch_domain" "main" {
     # When using a custom domain
     custom_endpoint_enabled = var.hostname != null
     custom_endpoint = var.hostname
-    custom_endpoint_certificate_arn = var.acm_certificate_arn
+    custom_endpoint_certificate_arn = var.hostname != null ? one(module.tls_certificate[*].acm_certificate_arn) : null
     tls_security_policy = "Policy-Min-TLS-1-2-2019-07"
   }
 
@@ -110,12 +110,15 @@ resource "aws_elasticsearch_domain" "main" {
   }
 }
 
-resource "aws_iam_service_linked_role" "es" {
-  /*
-  Allow ElasticSearch into the VPC
-  */
-  aws_service_name = "es.amazonaws.com"
-}
+# PLEASE CREATE THIS OUTSIDE TERRAFORM FOR NOW.
+# See https://github.com/cloudposse/terraform-aws-elasticsearch/issues/5
+# resource "aws_iam_service_linked_role" "es" {
+#   /*
+#   Allow ElasticSearch into the VPC
+#   */
+#   aws_service_name = "es.amazonaws.com"
+#   # custom_suffix = var.name  # Custom suffix is not allowed for es.amazonaws.com
+# }
 
 module "security_group" {
   /*
@@ -134,4 +137,29 @@ module "security_group" {
       source_security_group_id = security_group_id
     }
   }
+}
+
+module "hostname" {
+  /*
+  Hostname aliasing to the Elasticsearch domain
+  */
+  source = "d7oss/route53/aws//record"
+  version = "~> 1.0"
+  count = (var.hostname != null && var.hostname_zone_id != null) ? 1 : 0
+
+  zone_id = var.hostname_zone_id
+  type = "CNAME"
+  name = var.hostname
+  records = [aws_elasticsearch_domain.main.endpoint]
+  ttl = 30
+}
+
+module "tls_certificate" {
+  source = "terraform-aws-modules/acm/aws"
+  version = "~> 5.0"
+  count = (var.hostname != null && var.hostname_zone_id != null) ? 1 : 0
+
+  domain_name = var.hostname
+  validation_method = "DNS"
+  zone_id = var.hostname_zone_id
 }

@@ -1,5 +1,5 @@
 output "hostname" {
-  value = aws_elasticsearch_domain.main.endpoint
+  value = local.hostname
 }
 
 output "url" {

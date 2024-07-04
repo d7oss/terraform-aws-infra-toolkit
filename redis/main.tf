@@ -31,6 +31,8 @@ module "redis_cluster" {
   num_shards = var.num_shards
   num_replicas_per_shard = var.num_replicas_per_shard
 
+  create_subnet_group = var.subnet_ids != null
+  subnet_group_name = var.subnet_group_name
   subnet_ids = var.subnet_ids
   security_group_ids = [module.security_group.id]
 

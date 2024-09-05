@@ -288,9 +288,12 @@ resource "aws_lb_listener_rule" "http_services" {
   dynamic "condition" {  # Match headers
     for_each = each.value.http.listener_rule.headers != null ? [true] : []
     content {
-      http_header {
-        http_header_name = each.key
-        values = each.value.http.listener_rule.headers[each.key]
+      dynamic http_header {
+        for_each = each.value.http.listener_rule.headers
+        content {
+          http_header_name = http_header.key
+          values = http_header.value
+        }
       }
     }
   }

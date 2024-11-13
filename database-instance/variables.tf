@@ -19,10 +19,22 @@ variable "backup_window" {
 
 variable "engine" {
   type = string
+  default = null
+
+  validation {
+    condition = var.engine != null || var.restore_from_snapshot_identifier != null
+    error_message = "'engine' can only be null if restoring from a snapshot."
+  }
 }
 
 variable "engine_version" {
   type = string
+  default = null
+
+  validation {
+    condition = var.engine_version != null || var.restore_from_snapshot_identifier != null
+    error_message = "'engine_version' can only be null if restoring from a snapshot."
+  }
 }
 
 variable "extra_parameters" {

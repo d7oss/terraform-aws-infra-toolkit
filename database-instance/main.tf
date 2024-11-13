@@ -124,6 +124,9 @@ resource "aws_db_instance" "restored" {
   */
   count = local.is_snapshot_based ? 1 : 0
 
+  # Database
+  password = random_password.main.result
+
   # Database instance settings
   identifier = var.name
   snapshot_identifier = var.restore_from_snapshot_identifier

@@ -128,7 +128,7 @@ resource "aws_db_instance" "restored" {
   password = random_password.main.result
 
   # Database instance settings
-  identifier = var.name
+  identifier_prefix = var.name
   snapshot_identifier = var.restore_from_snapshot_identifier
   allocated_storage = var.allocated_storage
   instance_class = var.instance_class
@@ -144,6 +144,10 @@ resource "aws_db_instance" "restored" {
   # Final snapshot
   skip_final_snapshot = var.skip_final_snapshot
   final_snapshot_identifier = var.final_snapshot_identifier
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 module "security_group" {

@@ -244,3 +244,66 @@ variable "worker_services" {
   }))
   default = {}
 }
+
+variable "scheduled_tasks" {
+  type = map(object({
+    schedule_expression = string  # AWS-compliant crontab format
+
+    cpu = optional(number, 256)
+    memory = optional(number, 512)
+
+    container = object({
+      image = string
+      command = optional(list(string), [])
+      # cpu = optional(number)  # Inherited from the task
+      # memory = optional(number)  # Inherited from the task
+      environment_variables = optional(map(string), {})
+      secrets = optional(map(string), {})
+      log_group_name = optional(string)
+      log_group_retention_in_days = optional(number, 7)
+    })
+
+    extra_task_iam_statements = optional(map(object({
+      sid = optional(string)
+      actions = optional(list(string), [])
+      not_actions = optional(list(string), [])
+      resources = optional(list(string), [])
+      not_resources = optional(list(string), [])
+      principals = optional(list(object({
+        type = string
+        identifiers = list(string)
+      })), [])
+      not_principals = optional(list(object({
+        type = string
+        identifiers = list(string)
+      })), [])
+      conditions = optional(list(object({
+        test = string
+        variable = string
+        values = list(string)
+      })), [])
+    })), {})
+
+    extra_task_exec_iam_statements = optional(map(object({
+      sid = optional(string)
+      actions = optional(list(string), [])
+      not_actions = optional(list(string), [])
+      resources = optional(list(string), [])
+      not_resources = optional(list(string), [])
+      principals = optional(list(object({
+        type = string
+        identifiers = list(string)
+      })), [])
+      not_principals = optional(list(object({
+        type = string
+        identifiers = list(string)
+      })), [])
+      conditions = optional(list(object({
+        test = string
+        variable = string
+        values = list(string)
+      })), [])
+    })), {})
+  }))
+  default = {}
+}

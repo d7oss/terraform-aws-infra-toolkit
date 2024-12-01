@@ -1,4 +1,13 @@
 data "aws_region" "current" {}
+data "aws_partition" "current" {}
+data "aws_caller_identity" "current" {}
+
+locals {
+  account_id = data.aws_caller_identity.current.account_id
+  partition = data.aws_partition.current.partition
+  region = data.aws_region.current.name
+  cluster_name = regex("[^/]+$", var.cluster_arn)
+}
 
 module "security_group" {
   /*

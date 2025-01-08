@@ -2,6 +2,11 @@ variable "name" {
   type = string
 }
 
+variable "use_prefix" {
+  type = bool
+  default = null
+}
+
 variable "restore_from_cluster_snapshot_identifier" {
   type = string
   default = null
@@ -35,6 +40,16 @@ variable "engine" {
 }
 
 variable "engine_version" {
+  type = string
+  default = null
+}
+
+variable "database_name" {
+  type = string
+  default = null
+}
+
+variable "master_username" {
   type = string
   default = null
 }

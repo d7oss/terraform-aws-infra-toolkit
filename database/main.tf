@@ -76,7 +76,8 @@ resource "aws_rds_cluster" "main" {
   The database cluster — if NOT RESTORING from a snapshot
   */
   count = local.is_snapshot_based ? 0 : 1
-  cluster_identifier = var.name
+  cluster_identifier = coalesce(var.use_prefix, false) ? null : var.name
+  cluster_identifier_prefix = coalesce(var.use_prefix, false) ? var.name : null
 
   # Engine
   engine = one(data.aws_rds_engine_version.main.*.engine)
@@ -84,8 +85,8 @@ resource "aws_rds_cluster" "main" {
   engine_version = one(data.aws_rds_engine_version.main.*.version)
 
   # Database
-  database_name = "main"
-  master_username = "master"
+  database_name = coalesce(var.database_name, "main")
+  master_username = coalesce(var.master_username, "master")
   master_password = random_password.main.result
 
   # Networking
@@ -118,8 +119,12 @@ resource "aws_rds_cluster" "restored" {
   The database cluster — if RESTORING from a snapshot
   */
   count = local.is_snapshot_based ? 1 : 0
-  cluster_identifier_prefix = var.name  # New and old cluster will co-exist while deleting the old one
+
   snapshot_identifier = var.restore_from_cluster_snapshot_identifier
+
+  # NOTE: Here use_prefix defaults to true in favor of graceful replacement
+  cluster_identifier = coalesce(var.use_prefix, true) ? null : var.name  # Might be intentional
+  cluster_identifier_prefix = coalesce(var.use_prefix, true) ? var.name : null
 
   # Engine
   engine = local.snapshot.engine

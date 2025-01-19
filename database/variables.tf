@@ -89,6 +89,21 @@ variable "deletion_protection" {
   default = null
 }
 
+variable "performance_insights_enabled" {
+  type = bool
+  default = true
+}
+
+variable "performance_insights_retention_period" {
+  type = number
+  default = 7  # Free tier
+}
+
+variable "monitoring_interval" {
+  type = number
+  default = 60
+}
+
 variable "skip_final_snapshot" {
   type = bool
   default = false

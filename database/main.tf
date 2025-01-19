@@ -102,6 +102,8 @@ resource "aws_rds_cluster" "main" {
   apply_immediately = var.apply_immediately
   preferred_maintenance_window = var.preferred_maintenance_window
   deletion_protection = var.deletion_protection
+  performance_insights_enabled = var.performance_insights_enabled
+  performance_insights_retention_period = var.performance_insights_retention_period
 
   dynamic "serverlessv2_scaling_configuration" {
     /*
@@ -177,6 +179,7 @@ resource "aws_rds_cluster_instance" "main" {
   instance_class = var.instance_class
   engine = local.db_cluster.engine
   engine_version = local.db_cluster.engine_version
+  monitoring_interval = var.monitoring_interval
 }
 
 resource "random_pet" "instance_names" {

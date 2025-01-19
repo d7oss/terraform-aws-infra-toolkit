@@ -101,6 +101,7 @@ resource "aws_rds_cluster" "main" {
   # Maintenance
   apply_immediately = var.apply_immediately
   preferred_maintenance_window = var.preferred_maintenance_window
+  deletion_protection = var.deletion_protection
 
   dynamic "serverlessv2_scaling_configuration" {
     /*

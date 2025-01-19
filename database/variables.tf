@@ -84,6 +84,11 @@ variable "preferred_backup_window" {
   default = "02:00-03:00"
 }
 
+variable "deletion_protection" {
+  type = bool
+  default = null
+}
+
 variable "skip_final_snapshot" {
   type = bool
   default = false

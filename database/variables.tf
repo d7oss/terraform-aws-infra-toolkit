@@ -99,9 +99,14 @@ variable "performance_insights_retention_period" {
   default = 7  # Free tier
 }
 
+variable "monitoring_role_arn" {
+  type = string
+  default = null
+}
+
 variable "monitoring_interval" {
   type = number
-  default = 60
+  default = null
 }
 
 variable "skip_final_snapshot" {

@@ -179,6 +179,7 @@ resource "aws_rds_cluster_instance" "main" {
   instance_class = var.instance_class
   engine = local.db_cluster.engine
   engine_version = local.db_cluster.engine_version
+  monitoring_role_arn = var.monitoring_role_arn
   monitoring_interval = var.monitoring_interval
 }
 
